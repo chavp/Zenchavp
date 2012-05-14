@@ -1,0 +1,5 @@
+D:\myweb\Zenchavp\mysite\mysite\bin\mysite.dll
+D:\myweb\Zenchavp\mysite\mysite\bin\mysite.pdb
+D:\myweb\Zenchavp\mysite\mysite\obj\Debug\ResolveAssemblyReference.cache
+D:\myweb\Zenchavp\mysite\mysite\obj\Debug\mysite.dll
+D:\myweb\Zenchavp\mysite\mysite\obj\Debug\mysite.pdb

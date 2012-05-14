@@ -1,0 +1,250 @@
+﻿@model List<mysite.Models.Planet>
+           
+@{
+    ViewBag.Title = "Galaxy";
+}
+
+<canvas id="thespace"></canvas>
+
+<script type="application/processing" data-processing-target="thespace">
+
+float spring = 0.95;
+float gravity = 0.0;
+
+float nX, nY;
+
+int maxWidth;
+int maxHeight;
+
+int numOfPlanets = 7;
+Planet[] myPlanets = new Planet[numOfPlanets]; 
+
+void setup()
+{
+  size(screenWidth*0.99, screenHeight*0.99);
+  maxWidth = width;
+  maxHeight = height;
+
+  strokeWeight(50);
+  
+  smooth();
+  frameRate(24);
+
+  background(0);
+
+  PFont fontA = loadFont("courier");
+  textFont(fontA, 14);  
+
+  myPlanets[0] = new Planet("MySolution", maxWidth/2, maxHeight/2, 80, 0, myPlanets, null);
+  myPlanets[1] = new Planet("Modeling", random(width), random(height), 40, 1, myPlanets, myPlanets[0]);
+  myPlanets[2] = new Planet("Development", random(width), random(height), 40, 2, myPlanets, myPlanets[0]);
+  myPlanets[3] = new Planet("MyBlog", random(width), random(height), 40, 3, myPlanets, myPlanets[0]);
+  myPlanets[4] = new Planet("Books", random(width), random(height), 40, 4, myPlanets, myPlanets[0]);
+
+  myPlanets[5] = new Planet("Programming", random(width), random(height), 20, 5, myPlanets, myPlanets[2]);
+  myPlanets[6] = new Planet("Design Patterns", random(width), random(height), 20, 6, myPlanets, myPlanets[1]);
+
+}
+
+
+void draw(){  
+//  text("Hello Web!",20,20);
+//  println("Hello ErrorLog!");
+  
+  size(maxWidth, maxHeight);
+
+  for (int i=0; i<numOfPlanets; i++) { 
+    myPlanets[i].collide();
+    myPlanets[i].act(); 
+    myPlanets[i].display(); 
+  }
+}
+
+void mouseMoved(){
+  nX = mouseX;
+  nY = mouseY;  
+}
+
+void mouseClicked() {
+    if(hitPlanet != null){
+        if(hitPlanet.title == "MyBlog"){
+            link("http://chavp.wordpress.com", "_new");
+        }
+    }
+}
+
+float bdifx = 0.0; 
+float bdify = 0.0; 
+
+Planet hitPlanet = null;
+void mousePressed() {
+    if(hitPlanet == null){
+        for (int i=0; i<numOfPlanets; i++) { 
+            if(myPlanets[i].hover && myPlanets[i].id != 0){
+                hitPlanet = myPlanets[i];
+                break;
+            }
+        }
+    }
+
+    if(hitPlanet != null){
+        if(hitPlanet.hover){
+            hitPlanet.locked = true;
+        }else{
+            hitPlanet.locked = false;
+        }
+
+        bdifx = mouseX-hitPlanet.x; 
+        bdify = mouseY-hitPlanet.y; 
+    }
+}
+
+void mouseDragged() {
+  if(hitPlanet != null){
+    if(hitPlanet.locked){
+        hitPlanet.x = mouseX-bdifx; 
+        hitPlanet.y = mouseY-bdify; 
+    }
+  }
+}
+
+void mouseReleased() {
+    if(hitPlanet != null){
+        hitPlanet.locked = false;
+    }
+  hitPlanet = null;
+}
+
+
+class Planet{
+    float vx, vy; // The x- and y-axis velocities
+    float x, y, diameter;// The x- and y-coordinates
+
+    float mass = 5;
+    float stiffness = 0.01;
+    float damping = 0.3;
+
+    string title = "Untitle";
+    int id;
+    Planet[] others;
+    Planet parentPlanet = null;
+
+    Planet(string it, float xin, float yin, float din, int idin, Concept[] oin, Planet parent){
+        title = it;
+        x = xin;
+        y = yin;
+        diameter = din + title.length*8;
+        id = idin;
+        others = oin;
+        parentPlanet = parent;
+    }
+
+    boolean hover = false;
+    boolean locked = false;
+    void act() {
+        vy += gravity;
+        x += vx;
+        y += vy;
+        if (x + diameter/2 > width) {
+          x = width - diameter/2;
+          vx += -0.9; 
+        }
+        else if (x - diameter/2 < 0) {
+          x = diameter/2;
+          vx *= -0.9;
+        }
+        if (y + diameter/2 > height) {
+          y = height - diameter/2;
+          vy *= -0.9; 
+        } 
+        else if (y - diameter/2 < 0) {
+          y = diameter/2;
+          vy *= -0.9;
+        }
+
+        if(parentPlanet != null){
+            float targetX = parentPlanet.x;
+            float targetY = parentPlanet.y;
+
+            float dx = targetX - x;
+            float dy = targetY - y;
+
+            float forceX = dx * stiffness;
+            float ax = forceX / mass;
+            vx = damping * (vx + ax);
+            x += vx;
+
+            float forceY = dy * stiffness;
+            forceY += gravity;
+            float ay = forceY / mass;
+            vy = damping * (vy + ay);
+            y += vy;
+
+        }
+
+        // Test if the cursor is over the box
+        float dx = mouseX - x;
+        float dy = mouseY - y;
+        float distance = sqrt(dx*dx + dy*dy);
+        if (distance <= diameter/2) { 
+            hover = true;
+        }else{
+            hover = false;
+        }
+
+
+      }
+
+    void display(){
+        
+        if(id == 0){
+            diameter = diameter + sin( frameCount / 4 );
+        }
+
+        fill(255, 240);
+        ellipse(x, y, diameter, diameter ); 
+        
+        
+        if(parentPlanet != null){
+            stroke(255, 240);
+            
+            line(x, y, parentPlanet.x, parentPlanet.y);
+        }
+        fill(0);
+        text(title, x-title.length*4, y);
+
+        //println(title.length);
+        if(hover){
+            fill( 0 );
+            ellipse(x, y, diameter, diameter ); 
+
+            fill(255);
+            text(title, x-title.length*4, y);
+
+            
+        }
+
+    }
+
+    void collide() {
+        for (int i = id + 1; i < numOfPlanets; i++) {
+          float dx = others[i].x - x;
+          float dy = others[i].y - y;
+          float distance = sqrt(dx*dx + dy*dy);
+          float minDist = others[i].diameter/2 + diameter/2;
+          if (distance < minDist) { 
+            float angle = atan2(dy, dx);
+            float targetX = x + cos(angle) * minDist;
+            float targetY = y + sin(angle) * minDist;
+            float ax = (targetX - others[i].x) * spring;
+            float ay = (targetY - others[i].y) * spring;
+            vx -= ax;
+            vy -= ay;
+            others[i].vx += ax;
+            others[i].vy += ay;
+          }
+        }   
+    }
+}
+
+</script>
