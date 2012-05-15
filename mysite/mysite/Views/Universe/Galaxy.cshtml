@@ -2,13 +2,16 @@
            
 @{
     ViewBag.Title = "Galaxy";
+    
 }
+
+
 
 <canvas id="thespace"></canvas>
 
 <script type="application/processing" data-processing-target="thespace">
 
-float spring = 0.95;
+float spring = 0.99;
 float gravity = 0.0;
 
 float nX, nY;
@@ -16,17 +19,16 @@ float nX, nY;
 int maxWidth;
 int maxHeight;
 
-int numOfPlanets = 7;
+int numOfPlanets = 11;
 Planet[] myPlanets = new Planet[numOfPlanets]; 
 
 void setup()
 {
-  size(screenWidth*0.99, screenHeight*0.99);
+
+  size(985, 700);
   maxWidth = width;
   maxHeight = height;
 
-  strokeWeight(50);
-  
   smooth();
   frameRate(24);
 
@@ -35,15 +37,19 @@ void setup()
   PFont fontA = loadFont("courier");
   textFont(fontA, 14);  
 
-  myPlanets[0] = new Planet("MySolution", maxWidth/2, maxHeight/2, 80, 0, myPlanets, null);
-  myPlanets[1] = new Planet("Modeling", random(width), random(height), 40, 1, myPlanets, myPlanets[0]);
-  myPlanets[2] = new Planet("Development", random(width), random(height), 40, 2, myPlanets, myPlanets[0]);
-  myPlanets[3] = new Planet("MyBlog", random(width), random(height), 40, 3, myPlanets, myPlanets[0]);
-  myPlanets[4] = new Planet("Books", random(width), random(height), 40, 4, myPlanets, myPlanets[0]);
+  myPlanets[0] = new Planet("#:P", maxWidth/2, maxHeight/2, 150, 0, myPlanets, null);
 
-  myPlanets[5] = new Planet("Programming", random(width), random(height), 20, 5, myPlanets, myPlanets[2]);
-  myPlanets[6] = new Planet("Design Patterns", random(width), random(height), 20, 6, myPlanets, myPlanets[1]);
+  myPlanets[1] = new Planet("Define", maxWidth/2, maxHeight/2, 40, 1, myPlanets, myPlanets[0]);
+  myPlanets[2] = new Planet("Modeling", random(width), random(height), 40, 2, myPlanets, myPlanets[0]);
+  myPlanets[3] = new Planet("Development", random(width), random(height), 40, 3, myPlanets, myPlanets[0]);
+  myPlanets[4] = new Planet("Delivery", random(width), random(height), 40, 4, myPlanets, myPlanets[0]);
+  myPlanets[5] = new Planet("MyBlog", random(width), random(height), 40, 5, myPlanets, myPlanets[0]);
+  myPlanets[6] = new Planet("Books", random(width), random(height), 40, 6, myPlanets, myPlanets[0]);
+  myPlanets[7] = new Planet("Simulation", random(width), random(height), 40, 7, myPlanets, myPlanets[0]);
 
+  myPlanets[8] = new Planet("Programming", random(width), random(height), 20, 8, myPlanets, myPlanets[3]);
+  myPlanets[9] = new Planet("Design Patterns", random(width), random(height), 20, 9, myPlanets, myPlanets[2]);
+  myPlanets[10] = new Planet("Mob", random(width), random(height), 40, 10, myPlanets, myPlanets[7]);
 }
 
 
@@ -54,8 +60,8 @@ void draw(){
   size(maxWidth, maxHeight);
 
   for (int i=0; i<numOfPlanets; i++) { 
-    myPlanets[i].collide();
     myPlanets[i].act(); 
+    myPlanets[i].collide();
     myPlanets[i].display(); 
   }
 }
@@ -69,6 +75,10 @@ void mouseClicked() {
     if(hitPlanet != null){
         if(hitPlanet.title == "MyBlog"){
             link("http://chavp.wordpress.com", "_new");
+        }
+        if(hitPlanet.title == "Mob"){
+            
+            link("@Url.Action("Mob", "Universe")");
         }
     }
 }
@@ -88,12 +98,6 @@ void mousePressed() {
     }
 
     if(hitPlanet != null){
-        if(hitPlanet.hover){
-            hitPlanet.locked = true;
-        }else{
-            hitPlanet.locked = false;
-        }
-
         bdifx = mouseX-hitPlanet.x; 
         bdify = mouseY-hitPlanet.y; 
     }
@@ -101,20 +105,24 @@ void mousePressed() {
 
 void mouseDragged() {
   if(hitPlanet != null){
-    if(hitPlanet.locked){
-        hitPlanet.x = mouseX-bdifx; 
-        hitPlanet.y = mouseY-bdify; 
-    }
+    hitPlanet.x = mouseX-bdifx; 
+    hitPlanet.y = mouseY-bdify; 
   }
 }
 
 void mouseReleased() {
-    if(hitPlanet != null){
-        hitPlanet.locked = false;
-    }
   hitPlanet = null;
 }
 
+class Box{
+    float x, y;
+    Box(float xin, float yin){
+        x = xin;
+        y = yin;
+    }
+
+
+}
 
 class Planet{
     float vx, vy; // The x- and y-axis velocities
@@ -195,35 +203,45 @@ class Planet{
 
       }
 
+    boolean isHit = false;
     void display(){
         
         if(id == 0){
-            diameter = diameter + sin( frameCount / 4 );
+            //diameter = diameter + sin( frameCount / 3 );
+        }
+
+        if(parentPlanet != null){
+            strokeWeight(1);
+            stroke(255, 240);
+            
+            line(x, y, parentPlanet.x, parentPlanet.y);
         }
 
         fill(255, 240);
         ellipse(x, y, diameter, diameter ); 
         
-        
-        if(parentPlanet != null){
-            stroke(255, 240);
-            
-            line(x, y, parentPlanet.x, parentPlanet.y);
+        strokeWeight(1);
+        stroke(255, 240);
+
+        //println(title.length);
+        if(isHit){
+            isHit = false;
+            fill(#c4c4c4, 200);
+            ellipse(x, y, diameter, diameter ); 
         }
+
         fill(0);
         text(title, x-title.length*4, y);
 
-        //println(title.length);
         if(hover){
-            fill( 0 );
+            fill(#fdf696);
             ellipse(x, y, diameter, diameter ); 
 
-            fill(255);
+            fill(#4d4700);
             text(title, x-title.length*4, y);
 
             
         }
-
     }
 
     void collide() {
@@ -232,6 +250,7 @@ class Planet{
           float dy = others[i].y - y;
           float distance = sqrt(dx*dx + dy*dy);
           float minDist = others[i].diameter/2 + diameter/2;
+
           if (distance < minDist) { 
             float angle = atan2(dy, dx);
             float targetX = x + cos(angle) * minDist;
@@ -242,6 +261,9 @@ class Planet{
             vy -= ay;
             others[i].vx += ax;
             others[i].vy += ay;
+
+            others[i].isHit = true;
+            isHit = true;
           }
         }   
     }

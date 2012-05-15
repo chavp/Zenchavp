@@ -25,5 +25,14 @@ namespace mysite.Controllers
             return View(planetList);
         }
 
+        public ActionResult Drawing()
+        {
+            return View();
+        }
+
+        public ActionResult Mob()
+        {
+            return View();
+        }
     }
 }

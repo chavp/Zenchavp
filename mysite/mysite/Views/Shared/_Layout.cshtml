@@ -8,6 +8,22 @@
 </head>
 
 <body>
-    @RenderBody()
+    
+    <div id="wrapper">
+        <div id="header">
+            <h2>@Html.ActionLink("Chav:P", "Galaxy", "Universe")</h2>
+            <div id="menu">
+                
+            </div>
+        </div>
+
+        <div id="content">
+            @RenderBody()
+        </div>
+        <div id="footer">
+            <div>mail: my.parinya@gmail.com</div>
+        </div>
+    </div>
+
 </body>
 </html>
